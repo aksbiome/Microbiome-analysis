@@ -1,0 +1,197 @@
+---
+title: "Human microbiome stack plot"
+author: "Akshay"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(ape)
+library(plyr)
+library(vegan)
+library(Biostrings)
+library(RColorBrewer)
+library(reshape2)
+library(scales)
+library(data.table)
+library(microbiome)
+library(dplyr)
+library(phyloseq)
+
+```
+##COPD_Phylum
+```{r}
+	rm(list = ls())
+pseq <- readRDS("Final_phyloseq_object_NEW.rds")
+
+pseq
+
+sample_data(pseq)
+```
+```{r}
+data.phylum <- pseq %>%
+    tax_glom(taxrank = "Genus") %>% 
+    transform_sample_counts(function(x){x/sum(x)}) %>%
+ psmelt() %>% 
+filter(Abundance > 0.05) %>%
+    arrange(Genus)
+
+```
+```{r}
+#my_colors<- c( "#5F7FC7", "orange","#DA5724", "#508578", "#CD9BCD",  "#AD6F3B")
+p <- ggplot(data.phylum, aes(x = Categories, y = Abundance, fill = Genus)) +
+    geom_bar(stat = "identity",position="fill") + # to equal 1
+    theme_classic() +
+    scale_fill_manual(values = getPalette(colourCount)) +
+    theme(text = element_text(size=10),axis.text.y = element_text(hjust=1)) +
+    scale_x_discrete(drop=TRUE) +
+    theme(axis.title.x = element_blank()) + # Remove x axis title
+    guides(fill = guide_legend( keywidth = 1, keyheight = 1)) +
+  theme(axis.text.x=element_text(angle = 90, hjust = 0)) +
+    ylab("Distribution of OTUs at Genus level in COPD") 
+p  +  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) 
+
+ggsave("Distribution of Bacterial taxa at genus level in COPD_05_abundance.tiff", height = 4, width = 5)
+```
+```{r}
+pseqw <- subset_taxa(pseq, Family!= "f__")
+pseqv <- subset_taxa(pseqw, Family!= "f__mitochondria")
+data.family <- pseqv %>%
+    tax_glom(taxrank = "Family") %>% 
+    transform_sample_counts(function(x){x/sum(x)}) %>%
+ psmelt() %>% 
+  filter(Abundance > 0.005) %>%
+      arrange(Family)
+```
+
+```{r}
+my_colors <- c(  "darkblue",
+"#800000",
+ "#599861",
+ "#4B0082",
+"#fb9a99",
+ "#FF00FF",
+ "dodgerblue3",
+  "darkgoldenrod1",
+ "#808000",
+ "darkseagreen",
+ "darkolivegreen1",
+ "brown1",
+"#330019",
+"#D1A33D",
+ "#5F7FC7")
+p <- ggplot(data.family, aes(x = Treatment, y = Abundance, fill = Family)) +
+    geom_bar(stat = "identity",position="fill") + # to equal 1
+    theme_classic() +
+    scale_fill_manual(values = my_colors) +
+    theme(text = element_text(size=10),axis.text.y = element_text(hjust=1)) +
+    scale_x_discrete(drop=TRUE) +
+    theme(axis.title.x = element_blank()) + # Remove x axis title
+    guides(fill = guide_legend( keywidth = 1, keyheight = 1)) +
+    ylab("Distribution of OTUs at Family level") 
+p + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) + facet_grid(cols =  vars(Time_of_sampling))
+
+ggsave("Bac_family level.tiff", height = 4, width = 5)
+
+ggsave("Bac_family level.pdf", height = 4, width = 5)
+```
+```{r}
+
+pseqw <- subset_taxa(pseq, Family!= "f__")
+pseqv <- subset_taxa(pseqw, Family!= "f__S24-7")
+data.family <- pseqv %>%
+    tax_glom(taxrank = "Family") %>% 
+    transform_sample_counts(function(x){x/sum(x)}) %>%
+ psmelt() %>% 
+  filter(Abundance > 0.005) %>%
+      arrange(Family)
+
+```
+
+```{r}
+my_colors <- c( "#8A7C64",
+ "darkblue",
+
+"#800000",
+
+
+ "#0000FF",
+ "#4B0082",
+"#c51b7d",
+"#fb9a99",
+ "#FF00FF",
+"#599861",
+ "dodgerblue3",
+  "darkgoldenrod1",
+ "#808000",
+ "darkseagreen",
+ "darkolivegreen1",
+ "brown1",
+"#000000",
+ "#5F7FC7")
+
+p <- ggplot(data.family, aes(x = Treatment, y = Abundance, fill = Family)) +
+    geom_bar(stat = "identity",position="fill") + # to equal 1
+    theme_classic() +
+    scale_fill_manual(values = my_colors) +
+    theme(text = element_text(size=10),axis.text.y = element_text(hjust=1)) +
+    scale_x_discrete(drop=TRUE) +
+    theme(axis.title.x = element_blank()) + # Remove x axis title
+    guides(fill = guide_legend( keywidth = 1, keyheight = 1)) +
+    ylab("Distribution of OTUs at Family level") 
+p + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) + facet_grid(cols =  vars(Time_of_sampling))
+
+ggsave("Distribution of bacterial taxa at Family level.tiff", height = 4, width = 5)
+ggsave("Distribution of bacterial taxa at Family level.pdf", height = 4, width = 5)
+
+```
+```{r}
+pseqc <- subset_taxa(pseq, Genus!= "g__")
+data.genus <- pseqc %>%
+    tax_glom(taxrank = "Genus") %>% 
+    transform_sample_counts(function(x){x/sum(x)}) %>%
+ psmelt() %>% 
+    filter(Abundance > 0.005) %>%
+
+    arrange(Genus)
+```
+
+```{r}
+my_colors <- c( "darkblue",
+ "#556B2F",
+"#008080",
+    "darkorange1",
+ "#800000",
+ "darkolivegreen1",
+ "#fb9a99",
+ "#FF00FF",
+ "dodgerblue3",
+ "#808000",
+  "darkgoldenrod1",
+ "darkseagreen",
+"#000000",
+ "#c51b7d",
+ "#5F7FC7",
+"brown1",
+"#666600")
+p <- ggplot(data.genus, aes(x = Treatment, y = Abundance, fill = Genus)) +
+    geom_bar(stat = "identity",position="fill") + # to equal 1
+    theme_classic() +
+    scale_fill_manual(values = my_colors) +
+    theme(text = element_text(size=10),axis.text.y = element_text(hjust=1)) +
+    scale_x_discrete(drop=TRUE) +
+    theme(axis.title.x = element_blank()) + # Remove x axis title
+    guides(fill = guide_legend( keywidth = 1, keyheight = 1)) +
+    ylab("Distribution of OTUs at Genus level") 
+p + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) + facet_grid(cols =  vars(Time_of_sampling))
+
+ggsave("Distribution of bacterial taxa at genus level.tiff", height = 4, width = 5)
+ggsave("Distribution of bacterial taxa at genus level.pdf", height = 4, width = 5)
+
+```
