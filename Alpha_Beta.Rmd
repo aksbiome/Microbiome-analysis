@@ -1,0 +1,79 @@
+---
+title: "Alpha_Beta"
+author: "Akshay"
+date: "June 1, 2019"
+output: html_document
+
+---
+
+```{r}
+library(ggplot2)
+library(phyloseq)
+library(ggpubr)
+```
+#Alpha Diversity
+```{r}
+ps <- readRDS("ps.RDS")
+
+sample_data(ps)
+samdf <- read.table(file ='C:/Users/Akshay/Desktop/Glutathione_project/Glutathione_metadat_phyloseq.csv',header = T,sep = ',',row.names = 1)
+sample_data(ps) <- sample_data(samdf)
+sample_data(ps)
+setwd("C:/Users/Akshay/Desktop/Glutathione_project")
+ps
+
+```
+```{r}
+pseq5 <- readRDS("ps.RDS")
+pseq1 <- subset_samples(pseq5, Categories != "H-Nonsmoker")
+pseq2 <- subset_samples(pseq1, Categories!= "H-Smoker")
+pseq3 <- subset_samples(pseq2, Categories != "NS-COPD")
+pseq4 <- subset_samples(pseq3, Categories != "TS-COPD")
+pseq <- prune_taxa(taxa_sums(pseq4) >1, pseq4)
+pseq
+
+
+saveRDS(pseq, "phyloseq_object_after_prune_taxa_glutathione.rds")
+```
+```{r}
+div.all <- estimate_richness(pseq)
+write.csv(div.all, "alpha_div_group_glutathione.csv")
+
+
+alpha.ps1 <- plot_richness(pseq, x="Time_point", measures=c("Observed",  "Shannon")) + geom_boxplot(aes(fill=Time_point))
+
+p1 <- alpha.ps1 + scale_fill_manual(values = c("#057a18", "#e01021","#DA5724", "#FFA500", "#CD9BCD", "#AD6F3B")) + theme(strip.background = element_rect(fill="white")) + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+print(p1)
+
+ggsave("Alpha_div_Gluta_Time_point.tiff", height = 7, width = 12)
+```
+##Beta Diversity
+```{r}
+
+rm(list = ls())
+pseq1<- readRDS("phyloseq_object_after_prune_taxa_glutathione.rds")
+
+
+ps4 <- prune_taxa(taxa_sums(pseq1)>2, pseq1)
+ seed <- 2828
+set.seed(seed)
+
+ord_mds_bray1 = ordinate(ps4, "PCoA", "bray")
+
+beta.ps1 <- plot_ordination(ps4,
+                            label = "SampleID",
+                            ord_mds_bray1, 
+                            color="Time_point") 
+                      
+beta.ps1 <-  beta.ps1 + 
+  scale_color_manual(values = c("#5F7FC7", "orange","#DA5724", "#508578", "#CD9BCD",
+  "#AD6F3B", "#673770","#D14285", "#652926", "#C84248",
+  "#8569D5", "#5E738F","#D1A33D", "#8A7C64", "#599861", "steelblue", "#CBD588")) + geom_point(size= 3)
+p2 <- beta.ps1 + ggtitle("PCoA based on Bray-Curtis distance") + theme_bw(base_size = 14)
+print(p2)
+ggsave("Beta_div2_gluta4.tiff", height = 5, width = 7)
+p2+ stat_ellipse()
+ggsave("Beta_div_with_circle_with new object_gluta4.tiff", height = 5, width = 7)
+```
